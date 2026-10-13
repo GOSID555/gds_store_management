@@ -1,0 +1,38 @@
+{
+  "name": "@pos/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --env-file-if-exists=../../.env src/server.ts",
+    "build": "tsup",
+    "start": "node --env-file-if-exists=../../.env dist/server.js",
+    "typecheck": "tsc -p .",
+    "test": "vitest run",
+    "db:generate": "drizzle-kit generate",
+    "db:seed": "tsx --env-file-if-exists=../../.env src/seed.ts",
+    "db:reset-owner": "tsx --env-file-if-exists=../../.env src/reset-owner.ts"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.2.12",
+    "@fastify/cors": "^9.0.1",
+    "@fastify/jwt": "^8.0.1",
+    "@pos/shared": "*",
+    "bcryptjs": "^2.4.3",
+    "drizzle-orm": "^0.36.0",
+    "fastify": "^4.28.1",
+    "pg": "^8.13.0",
+    "zod": "^3.23.8",
+    "fastify-plugin": "^4.5.1"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^22.7.5",
+    "@types/pg": "^8.11.10",
+    "drizzle-kit": "^0.28.0",
+    "tsup": "^8.3.0",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.3"
+  }
+}

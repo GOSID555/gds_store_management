@@ -1,0 +1,23 @@
+{
+  "name": "pos",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @pos/api & npm run dev -w @pos/web",
+    "dev:api": "npm run dev -w @pos/api",
+    "dev:web": "npm run dev -w @pos/web",
+    "build": "npm run build -w @pos/api && npm run build -w @pos/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "db:generate": "npm run db:generate -w @pos/api",
+    "db:seed": "npm run db:seed -w @pos/api",
+    "db:reset-owner": "npm run db:reset-owner -w @pos/api"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

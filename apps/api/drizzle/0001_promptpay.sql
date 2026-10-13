@@ -1,0 +1,1 @@
+ALTER TABLE "shop_settings" ADD COLUMN "promptpay_id" text DEFAULT '' NOT NULL;

@@ -1,0 +1,54 @@
+# หน้าร้าน POS
+
+ระบบขายหน้าร้านแบบ offline-first ใช้ได้ทุกอุปกรณ์ (PWA) ซิงก์ผ่าน API + PostgreSQL
+
+- **apps/web**: React + Vite + PWA + IndexedDB (Dexie)
+- **apps/api**: Fastify + Drizzle ORM + PostgreSQL (dev ใช้ PGlite ไม่ต้องติดตั้ง Postgres)
+- **packages/shared**: schema, โปรโตคอลซิงก์, ฟังก์ชันเงิน ที่ใช้ร่วมกัน
+
+อ่านการออกแบบได้ที่ [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+
+## เริ่มใช้งาน (dev)
+
+```bash
+npm install
+```
+
+```bash
+cp .env.example .env
+```
+
+แก้ `JWT_SECRET` และ `OWNER_PASSWORD` ใน `.env` แล้ว:
+
+```bash
+npm run db:seed
+```
+
+```bash
+npm run dev
+```
+
+- เว็บ: http://localhost:5173 (มือถือในวง Wi-Fi เดียวกันเข้าผ่าน IP ของเครื่องได้)
+- API: http://localhost:3001
+- เข้าสู่ระบบด้วย `OWNER_USERNAME` / `OWNER_PASSWORD` จาก `.env`
+
+ไม่ตั้ง `DATABASE_URL` = ใช้ PGlite เก็บไว้ที่ `.pgdata/` ถ้าจะใช้ Postgres จริง: `docker compose up -d` แล้วตั้ง
+`DATABASE_URL=postgres://pos:pos@localhost:5432/pos`
+
+## คำสั่ง
+
+| คำสั่ง | ทำอะไร |
+|---|---|
+| `npm run dev` | รัน API + เว็บ |
+| `npm test` | test ฝั่ง API (ซิงก์, สิทธิ์, idempotency) |
+| `npm run typecheck` | ตรวจ type ทุก workspace |
+| `npm run build` | build API (`apps/api/dist`) และเว็บ (`apps/web/dist`) |
+| `npm run db:generate` | สร้าง migration หลังแก้ `apps/api/src/db/schema.ts` |
+
+## Deploy
+1. PostgreSQL (เช่น Neon, Supabase, RDS หรือ VPS)
+2. API: `npm run build -w @pos/api` แล้วรัน `node apps/api/dist/server.js` (cwd = `apps/api`, migration รันเองตอนเปิด)
+3. เว็บ: `apps/web/dist` เป็น static file วางบน CDN/Nginx ให้ `/api/*` proxy ไป API (หรือ build ด้วย `VITE_API_URL`)
+4. ต้องใช้ HTTPS เพื่อให้ PWA/Service Worker ทำงานบนมือถือ
+
+`prototype/pos.html` คือต้นแบบหน้าตาเวอร์ชันแรก (ไฟล์เดียว) เก็บไว้อ้างอิง
