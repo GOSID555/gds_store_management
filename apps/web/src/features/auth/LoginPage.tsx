@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { api, HttpError } from '../../lib/api';
 import { session } from '../../lib/session';
 
@@ -7,6 +7,18 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  /** ลองเข้าแบบไม่ต้องมีบัญชีก่อน (โหมดทดลอง) ถ้า server บังคับเข้าสู่ระบบค่อยแสดงฟอร์ม */
+  const [tryingGuest, setTryingGuest] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    api.guest()
+      .then((s) => alive && session.set(s))
+      .catch(() => alive && setTryingGuest(false));
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -20,6 +32,8 @@ export function LoginPage() {
       setBusy(false);
     }
   }
+
+  if (tryingGuest) return <div className="login"><p className="note">กำลังเปิดร้าน…</p></div>;
 
   return (
     <div className="login">

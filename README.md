@@ -52,14 +52,20 @@ npm run dev
 
 1. Vercel → **Add New → Project** → Import repo นี้จาก GitHub (Framework Preset: Other, Root Directory: `./`)
 2. ก่อนกด Deploy: **Storage → Create Database → Neon (Postgres)** แล้วผูกกับโปรเจกต์ (จะได้ `DATABASE_URL` อัตโนมัติ)
-3. **Settings → Environment Variables** ตั้งค่า:
-   | ชื่อ | ค่า |
-   |---|---|
-   | `JWT_SECRET` | สุ่มยาว 32 ตัวขึ้นไป (`openssl rand -hex 32`) |
-   | `OWNER_USERNAME` | ชื่อผู้ใช้เจ้าของร้าน เช่น `owner` |
-   | `OWNER_PASSWORD` | รหัสผ่านเจ้าของร้าน (ใช้ตอนสร้างบัญชีครั้งแรกเท่านั้น) |
-   | `DATABASE_URL` | มาจาก Neon อัตโนมัติ (ใช้แบบ pooled) |
-4. Deploy แล้วเปิด `https://<project>.vercel.app` เข้าสู่ระบบด้วยบัญชีเจ้าของร้าน
+3. Deploy แล้วเปิด `https://<project>.vercel.app` ใช้งานได้ทันที
+
+### โหมดทดลอง (ค่าเริ่มต้น): ไม่ต้องเข้าสู่ระบบ
+ตอนนี้ไม่ได้ตั้ง `REQUIRE_LOGIN` ใครเปิดลิงก์ก็ใช้ได้ทันทีในสิทธิ์เจ้าของร้าน (เพิ่ม/แก้สินค้า, ยกเลิกบิล, ดูยอดขาย)
+**อย่าแชร์ลิงก์ให้คนนอก** เมื่อจะใช้จริงให้เปิดระบบเข้าสู่ระบบใน **Settings → Environment Variables** แล้ว Redeploy:
+
+| ชื่อ | ค่า |
+|---|---|
+| `REQUIRE_LOGIN` | `true` |
+| `JWT_SECRET` | สุ่มยาว 32 ตัวขึ้นไป (`openssl rand -hex 32`) |
+| `OWNER_USERNAME` | ชื่อผู้ใช้เจ้าของร้าน เช่น `owner` |
+| `OWNER_PASSWORD` | รหัสผ่านเจ้าของร้าน (ใช้ตอนสร้างบัญชีครั้งแรกเท่านั้น) |
+
+ข้อมูลที่ทดลองไว้ยังอยู่ครบ ทุกเครื่องจะถูกให้เข้าสู่ระบบใหม่
 
 ข้อจำกัดบน Vercel: จอลูกค้าอัปเดตแบบ polling ทุก ~1 วินาที (serverless ไม่รองรับการเชื่อมต่อค้างนาน)
 

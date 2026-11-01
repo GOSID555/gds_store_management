@@ -26,6 +26,8 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 export const api = {
   login: (username: string, password: string) =>
     request<{ token: string; user: SessionUser }>('/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) }),
+  /** โหมดทดลอง: ขอ token โดยไม่ต้องมีบัญชี (server ตอบ 404 ถ้าเปิดบังคับเข้าสู่ระบบ) */
+  guest: () => request<{ token: string; user: SessionUser }>('/auth/guest', { method: 'POST', body: '{}' }),
   push: (body: PushRequest) => request<PushResponse>('/sync/push', { method: 'POST', body: JSON.stringify(body) }),
   pull: (since: number) => request<PullResponse>(`/sync/pull?since=${since}&limit=500`),
   listUsers: () => request<SessionUser[]>('/users'),

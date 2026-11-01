@@ -17,7 +17,7 @@ async function init() {
     throw new Error('ตั้ง DATABASE_URL เป็น PostgreSQL (เช่น Neon) ใน Vercel → Settings → Environment Variables');
   }
   const { db } = await createDb(env.DATABASE_URL, { migrate: false, poolMax: 3 });
-  const app = await buildApp({ db, jwtSecret: env.JWT_SECRET, corsOrigin: env.CORS_ORIGIN });
+  const app = await buildApp({ db, jwtSecret: env.JWT_SECRET, requireLogin: env.REQUIRE_LOGIN, corsOrigin: env.CORS_ORIGIN });
   await app.ready();
   return app;
 }

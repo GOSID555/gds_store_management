@@ -13,7 +13,7 @@ declare module 'fastify' {
   }
 }
 
-export type AppOptions = { db: Db; jwtSecret: string; corsOrigin?: string; logger?: boolean };
+export type AppOptions = { db: Db; jwtSecret: string; requireLogin?: boolean; corsOrigin?: string; logger?: boolean };
 
 export async function buildApp(opts: AppOptions) {
   const app = Fastify({ logger: opts.logger ?? false, bodyLimit: 8 * 1024 * 1024 });
@@ -25,7 +25,7 @@ export async function buildApp(opts: AppOptions) {
   app.get('/health', async () => ({ ok: true }));
   await app.register(
     async (api) => {
-      await api.register(authRoutes);
+      await api.register(authRoutes, { requireLogin: opts.requireLogin ?? true });
       await api.register(syncRoutes);
       await api.register(userRoutes);
       await api.register(displayRoutes);
