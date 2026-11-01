@@ -21,6 +21,8 @@ export function getDisplayCode(): string {
 }
 export const resetDisplayCode = () => localStorage.removeItem(CODE_KEY);
 export const displayUrl = (code = getDisplayCode()) => `${location.origin}/display?code=${code}`;
+/** หน้าสแกนจ่ายอย่างเดียว (QR ตัวใหญ่ตามยอดบิลปัจจุบัน) */
+export const payUrl = (code = getDisplayCode()) => `${location.origin}/pay?code=${code}`;
 
 const bc = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel(CHANNEL) : null;
 let last = '';

@@ -20,7 +20,8 @@ export function SellPage() {
   const [done, setDone] = useState<LocalSale | null>(null);
   const [toast, setToast] = useState('');
 
-  const qr = paying?.method === 'transfer' && settings?.promptPayId && isValidPromptPayId(settings.promptPayId) && cart.total > 0
+  // QR ตามยอดบิลปัจจุบัน: หน้า /pay แสดงตลอดที่บิลมียอด, จอลูกค้าแสดงเฉพาะตอนเลือกโอน
+  const qr = paying?.method !== 'cash' && settings?.promptPayId && isValidPromptPayId(settings.promptPayId) && cart.total > 0
     ? promptPayPayload(settings.promptPayId, cart.total)
     : undefined;
 
@@ -50,7 +51,7 @@ export function SellPage() {
       {paying && (
         <PaymentDialog
           cart={cart}
-          qr={qr}
+          qr={paying.method === 'transfer' ? qr : undefined}
           hasPromptPay={!!settings?.promptPayId}
           onChange={setPaying}
           onClose={() => setPaying(null)}
@@ -79,5 +80,5 @@ function displayState(shopName: string, cart: Cart, paying: PayDraft | null, don
     total: cart.total,
   };
   if (paying) return { ...base, phase: 'pay', method: paying.method, received: paying.received, qr };
-  return { ...base, phase: cart.items.length ? 'cart' : 'idle' };
+  return { ...base, phase: cart.items.length ? 'cart' : 'idle', qr };
 }

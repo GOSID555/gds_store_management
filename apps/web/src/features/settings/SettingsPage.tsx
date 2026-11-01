@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { isValidPromptPayId } from '@pos/shared';
 import { QrCode } from '../../components/QrCode';
 import { api, HttpError } from '../../lib/api';
-import { displayUrl, getDisplayCode, resetDisplayCode } from '../../lib/display';
+import { displayUrl, getDisplayCode, payUrl, resetDisplayCode } from '../../lib/display';
 import { usePendingCount, useSettings, useSyncErrors } from '../../lib/hooks';
 import { actions } from '../../lib/mutations';
 import { session, useSession, type SessionUser } from '../../lib/session';
@@ -135,6 +135,15 @@ function DisplayPairing({ local: localMode }: { local: boolean }) {
             <span className="note">รหัสจับคู่ของเครื่องนี้</span>
             <span className="code">{code}</span>
             <span className="url">{url}</span>
+          </div>
+        </div>
+        <div className="pair" style={{ borderTop: '1px solid var(--line)', paddingTop: 14 }}>
+          <QrCode value={payUrl(code)} size={140} label="QR สำหรับเปิดหน้าสแกนจ่าย" />
+          <div style={{ minWidth: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <b>หน้าสแกนจ่ายอย่างเดียว</b>
+            <span className="note">QR พร้อมเพย์ตัวใหญ่ตามยอดบิลปัจจุบัน สร้างใหม่ทุกบิล เหมาะกับมือถือที่ตั้งไว้หน้าเคาน์เตอร์</span>
+            <span className="url">{payUrl(code)}</span>
+            <a className="btn sm" href={payUrl(code)} target="_blank" rel="noreferrer" style={{ textDecoration: 'none', alignSelf: 'flex-start' }}>เปิดหน้าสแกนจ่าย</a>
           </div>
         </div>
         <ol className="note" style={{ margin: 0, paddingLeft: 18 }}>

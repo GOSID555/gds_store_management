@@ -4,6 +4,7 @@ import { LocalModeBanner } from './components/LocalModeBanner';
 import { SyncBadge } from './components/SyncBadge';
 import { LoginPage } from './features/auth/LoginPage';
 import { CustomerDisplayPage } from './features/display/CustomerDisplayPage';
+import { PayPage } from './features/display/PayPage';
 import { InventoryPage } from './features/inventory/InventoryPage';
 import { ReportsPage } from './features/reports/ReportsPage';
 import { SellPage } from './features/sell/SellPage';
@@ -14,12 +15,12 @@ import { startSync } from './lib/sync/engine';
 
 export function App() {
   const s = useSession();
-  const isDisplay = location.pathname.startsWith('/display');
+  const isDisplay = location.pathname.startsWith('/display') || location.pathname.startsWith('/pay');
   useEffect(() => {
     if (s && !isDisplay) startSync();
   }, [s, isDisplay]);
   // จอลูกค้าไม่ต้องเข้าสู่ระบบ และไม่ซิงก์ข้อมูลร้าน
-  if (isDisplay) return <CustomerDisplayPage />;
+  if (isDisplay) return location.pathname.startsWith('/pay') ? <PayPage /> : <CustomerDisplayPage />;
   if (!s) return <LoginPage />;
 
   const isOwner = s.user.role === 'owner';
