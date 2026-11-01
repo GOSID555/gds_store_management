@@ -14,7 +14,11 @@ export async function toProductImage(file: File, size = 256): Promise<string> {
   ctx.fillRect(0, 0, size, size);
   ctx.drawImage(bmp, (bmp.width - side) / 2, (bmp.height - side) / 2, side, side, 0, 0, size, size);
   bmp.close();
+  return encodeProductImage(canvas);
+}
 
+/** แปลง canvas เป็น data URL ที่ขนาดไม่เกินเพดานของสินค้า (ลดคุณภาพทีละขั้น) */
+export function encodeProductImage(canvas: HTMLCanvasElement): string {
   for (const q of [0.82, 0.7, 0.55, 0.4]) {
     let url = canvas.toDataURL('image/webp', q);
     if (!url.startsWith('data:image/webp')) url = canvas.toDataURL('image/jpeg', q); // Safari รุ่นเก่าไม่รองรับ WebP

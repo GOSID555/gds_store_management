@@ -1,6 +1,7 @@
 import Dexie from 'dexie';
 import { SAMPLE_MENU, computeSaleTotals, type Mutation, type PaymentMethod, type Product, type SaleItem } from '@pos/shared';
 import { db, getMeta, setMeta, type LocalSale } from './db';
+import { sampleArtImage } from './sampleArt';
 import { deviceCode, getDeviceId, isLocalMode, session } from './session';
 import { syncNow } from './sync/engine';
 
@@ -56,19 +57,33 @@ export const actions = {
     });
   },
 
-  /** ใส่เมนูตัวอย่างร้านชานม 20 รายการ (ข้ามรายการที่มีอยู่แล้ว) คืนจำนวนที่เพิ่ม */
-  async loadSampleMenu(): Promise<number> {
+  /**
+   * ใส่เมนูตัวอย่างร้านชานม 20 รายการพร้อมภาพประกอบ
+   * - ยังไม่มี → เพิ่มพร้อมสต็อกตั้งต้น
+   * - มีแล้วแต่ไม่มีรูป → ใส่รูปให้ (ไม่แตะราคา/สต็อกที่แก้ไว้)
+   */
+  async loadSampleMenu(): Promise<{ added: number; pictured: number }> {
     const have = await db.products.bulkGet(SAMPLE_MENU.map((m) => m.id));
     let added = 0;
+    let pictured = 0;
     for (const [i, m] of SAMPLE_MENU.entries()) {
-      if (have[i]) continue;
-      await actions.saveProduct(
-        { id: m.id, name: m.name, category: m.category, sku: m.sku, price: m.price * 100, cost: m.cost * 100, lowStock: m.lowStock, image: null, archived: false },
-        m.stock,
-      );
-      added++;
+      const existing = have[i];
+      if (existing && (existing.image || existing.archived)) continue;
+      // วาดรูปก่อนเปิด transaction (งาน async ที่ไม่ใช่ Dexie ห้ามอยู่ใน transaction)
+      const image = await sampleArtImage(m.name).catch(() => null);
+      if (existing) {
+        const { stock: _s, seq: _q, updatedAt: _u, ...rest } = existing;
+        await actions.saveProduct({ ...rest, image });
+        pictured++;
+      } else {
+        await actions.saveProduct(
+          { id: m.id, name: m.name, category: m.category, sku: m.sku, price: m.price * 100, cost: m.cost * 100, lowStock: m.lowStock, image, archived: false },
+          m.stock,
+        );
+        added++;
+      }
     }
-    return added;
+    return { added, pictured };
   },
 
   archiveProduct: (productId: string) =>

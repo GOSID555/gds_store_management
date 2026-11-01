@@ -15,8 +15,12 @@ export function InventoryPage({ canEdit }: { canEdit: boolean }) {
 
   async function loadSamples() {
     setSampleMsg('กำลังใส่เมนู…');
-    const n = await actions.loadSampleMenu();
-    setSampleMsg(n ? `ใส่เมนูตัวอย่างแล้ว ${n} รายการ` : 'มีเมนูตัวอย่างครบอยู่แล้ว');
+    const { added, pictured } = await actions.loadSampleMenu();
+    setSampleMsg(
+      added || pictured
+        ? [added && `เพิ่มเมนู ${added} รายการ`, pictured && `ใส่รูปให้ ${pictured} รายการ`].filter(Boolean).join(' · ')
+        : 'มีเมนูตัวอย่างพร้อมรูปครบแล้ว',
+    );
   }
 
   const ps = products ?? [];
@@ -34,7 +38,7 @@ export function InventoryPage({ canEdit }: { canEdit: boolean }) {
           {canEdit && (
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
               {sampleMsg && <span className="note">{sampleMsg}</span>}
-              <button className="btn ghost" onClick={() => void loadSamples()}>ใส่เมนูตัวอย่าง (ชานม 20 รายการ)</button>
+              <button className="btn ghost" onClick={() => void loadSamples()}>ใส่เมนูตัวอย่าง + รูป (ชานม 20 รายการ)</button>
               <button className="btn primary" onClick={() => setEditing('new')}>+ เพิ่มสินค้า</button>
             </div>
           )}
