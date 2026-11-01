@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { NavLink, Navigate, Route, Routes } from 'react-router-dom';
+import { LocalModeBanner } from './components/LocalModeBanner';
 import { SyncBadge } from './components/SyncBadge';
 import { LoginPage } from './features/auth/LoginPage';
 import { CustomerDisplayPage } from './features/display/CustomerDisplayPage';
@@ -25,6 +26,7 @@ export function App() {
   return (
     <div className="app">
       <Header isOwner={isOwner} />
+      {s.local && <LocalModeBanner />}
       <main>
         <Routes>
           <Route path="/" element={<SellPage />} />
