@@ -97,12 +97,12 @@ client เก็บ cursor (seq ล่าสุด) และขอเฉพา�
 ```mermaid
 flowchart LR
   C["เครื่องแคชเชียร์<br/>SellPage"] -- "BroadcastChannel<br/>(จอที่สองบนเครื่องเดียวกัน)" --> D1["/display"]
-  C -- "PUT /api/display/:code" --> R["API relay<br/>(in-memory)"]
-  R -- "SSE /api/display/:code/stream" --> D2["/display?code=…<br/>แท็บเล็ตหันหาลูกค้า"]
+  C -- "PUT /api/display/:code" --> R[("display_states<br/>(Postgres)")]
+  R -- "GET /api/display/:code?after=v<br/>(poll ทุก 1 วิ)" --> D2["/display?code=…<br/>แท็บเล็ตหันหาลูกค้า"]
 ```
 - เครื่องแคชเชียร์ส่ง **สถานะทั้งหมด** (idle / cart / pay / done) ทุกครั้งที่เปลี่ยน จอที่เพิ่งเปิดจึงแสดงถูกทันที
 - จอลูกค้าไม่ต้องเข้าสู่ระบบ ใช้ **รหัสจับคู่** 8 ตัว (สุ่ม, เปลี่ยนได้ในหน้าตั้งค่า) เห็นได้แค่ตะกร้าปัจจุบัน
-- relay อยู่ในหน่วยความจำ ไม่ใช่ข้อมูลบัญชี บิลจริงไปทาง `/sync` เสมอ ถ้ามี API หลาย instance ให้เปลี่ยนเป็น Redis pub/sub
+- เก็บแถวเดียวต่อจอใน Postgres (ใช้ได้บน serverless / หลาย instance) จอ poll พร้อม version ถ้าไม่มีอะไรใหม่ได้ 204 ไม่ใช่ข้อมูลบัญชี บิลจริงไปทาง `/sync` เสมอ
 - QR สร้างตามมาตรฐาน EMVCo / Thai QR (`packages/shared/src/promptpay.ts`) ใส่ยอดเงินในตัว ลูกค้าไม่ต้องพิมพ์ยอด
 - ระบบ **ไม่ได้ยืนยันว่าเงินเข้าจริง** (ต้องเชื่อม API ธนาคาร/payment gateway) พนักงานต้องดูเงินเข้าในแอปธนาคารก่อนกด "ได้รับเงินแล้ว"
 

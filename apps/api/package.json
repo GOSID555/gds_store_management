@@ -11,7 +11,8 @@
     "test": "vitest run",
     "db:generate": "drizzle-kit generate",
     "db:seed": "tsx --env-file-if-exists=../../.env src/seed.ts",
-    "db:reset-owner": "tsx --env-file-if-exists=../../.env src/reset-owner.ts"
+    "db:reset-owner": "tsx --env-file-if-exists=../../.env src/reset-owner.ts",
+    "db:migrate": "tsx --env-file-if-exists=../../.env src/migrate.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.2.12",

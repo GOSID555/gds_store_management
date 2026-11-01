@@ -105,6 +105,13 @@ describe('display relay', () => {
     const bad = await app.inject({ method: 'PUT', url: '/api/display/abc', headers: { authorization: `Bearer ${cashier}` }, payload: state });
     expect(bad.statusCode).toBe(400);
     const ok = await app.inject({ method: 'PUT', url: '/api/display/ABC123', headers: { authorization: `Bearer ${cashier}` }, payload: state });
-    expect(ok.json()).toEqual({ ok: true, viewers: 0 });
+    expect(ok.json()).toEqual({ ok: true, version: 1 });
+
+    // จอลูกค้าอ่านได้โดยไม่ต้องเข้าสู่ระบบ และได้ 204 ถ้าไม่มีอะไรใหม่หลัง version ที่มีแล้ว
+    const got = await app.inject({ method: 'GET', url: '/api/display/ABC123' });
+    expect(got.json()).toMatchObject({ version: 1, state: { phase: 'cart', total: 5500 } });
+    expect((await app.inject({ method: 'GET', url: '/api/display/ABC123?after=1' })).statusCode).toBe(204);
+    await app.inject({ method: 'PUT', url: '/api/display/ABC123', headers: { authorization: `Bearer ${cashier}` }, payload: { ...state, phase: 'idle' } });
+    expect((await app.inject({ method: 'GET', url: '/api/display/ABC123?after=1' })).json()).toMatchObject({ version: 2, state: { phase: 'idle' } });
   });
 });

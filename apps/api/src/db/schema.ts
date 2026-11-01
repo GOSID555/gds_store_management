@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { bigint, boolean, index, integer, pgSequence, pgTable, serial, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { bigint, boolean, index, integer, jsonb, pgSequence, pgTable, serial, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 /**
  * ทุกแถวที่ client ต้องซิงก์มีคอลัมน์ `seq` ซึ่งดึงจาก sequence เดียวกันทุกครั้งที่แถวเปลี่ยน
@@ -112,4 +112,15 @@ export const processedMutations = pgTable('processed_mutations', {
   status: text('status', { enum: ['applied', 'rejected'] }).notNull(),
   error: text('error'),
   processedAt: ts('processed_at').notNull().default(sql`now()`),
+});
+
+/**
+ * สถานะจอลูกค้าล่าสุดต่อรหัสจับคู่ — เก็บใน DB เพราะ serverless ไม่มีหน่วยความจำร่วมระหว่าง instance
+ * แถวเดียวต่อจอ เขียนทับทุกครั้ง (ไม่ใช่ข้อมูลบัญชี)
+ */
+export const displayStates = pgTable('display_states', {
+  code: text('code').primaryKey(),
+  state: jsonb('state').notNull(),
+  version: bigint('version', { mode: 'number' }).notNull().default(1),
+  updatedAt: ts('updated_at').notNull().defaultNow(),
 });

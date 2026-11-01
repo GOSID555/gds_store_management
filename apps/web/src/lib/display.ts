@@ -48,15 +48,29 @@ export function subscribeDisplay(code: string | null, onState: (s: DisplayState)
   const local = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel(CHANNEL) : null;
   if (local) local.onmessage = (e) => onState(e.data as DisplayState);
 
-  let es: EventSource | null = null;
-  if (code) {
-    es = new EventSource(`${BASE}/display/${code}/stream`);
-    es.onopen = () => onConn(true);
-    es.onerror = () => onConn(false); // EventSource ต่อใหม่ให้เอง
-    es.onmessage = (e) => onState(JSON.parse(e.data));
-  }
+  // poll ทุก 1 วินาที (ทำงานได้บน serverless) ขอเฉพาะเมื่อ version ใหม่กว่าที่มี
+  let stopped = false;
+  let version = 0;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const poll = async () => {
+    try {
+      const res = await fetch(`${BASE}/display/${code}?after=${version}`, { cache: 'no-store' });
+      if (res.status === 200) {
+        const body = (await res.json()) as { version: number; state: DisplayState };
+        version = body.version;
+        onState(body.state);
+      }
+      onConn(res.ok);
+    } catch {
+      onConn(false);
+    }
+    if (!stopped) timer = setTimeout(poll, document.visibilityState === 'visible' ? 1000 : 5000);
+  };
+  if (code) void poll();
+
   return () => {
+    stopped = true;
+    clearTimeout(timer);
     local?.close();
-    es?.close();
   };
 }
