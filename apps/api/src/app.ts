@@ -20,7 +20,7 @@ export async function buildApp(opts: AppOptions) {
   app.decorate('db', opts.db);
 
   await app.register(cors, { origin: opts.corsOrigin?.split(',') ?? true });
-  await app.register(authPlugin, { secret: opts.jwtSecret });
+  await app.register(authPlugin, { secret: opts.jwtSecret, requireLogin: opts.requireLogin ?? true });
 
   app.get('/health', async () => ({ ok: true }));
   await app.register(

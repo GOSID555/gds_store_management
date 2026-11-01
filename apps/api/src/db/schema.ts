@@ -17,6 +17,10 @@ export const users = pgTable('users', {
   username: text('username').notNull().unique(),
   passwordHash: text('password_hash').notNull(),
   role: text('role', { enum: ['owner', 'cashier'] }).notNull(),
+  /** ปิดบัญชี (พนักงานลาออก) — token ที่มีอยู่ใช้ไม่ได้ทันที */
+  disabled: boolean('disabled').notNull().default(false),
+  /** เพิ่มทุกครั้งที่เปลี่ยนรหัส/ปิดบัญชี — token ที่ออกก่อนหน้าใช้ไม่ได้ (ล็อกเอาต์ทุกเครื่อง) */
+  tokenVersion: integer('token_version').notNull().default(0),
   createdAt: ts('created_at').notNull().defaultNow(),
 });
 

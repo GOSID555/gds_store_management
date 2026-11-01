@@ -23,6 +23,6 @@ export async function ensureGuest(db: Db) {
     .insert(users)
     .values({ name: 'ผู้ทดลองใช้', username: GUEST_USERNAME, passwordHash: '!disabled', role: 'owner' })
     .onConflictDoNothing({ target: users.username });
-  const [u] = await db.select({ id: users.id, name: users.name, role: users.role, username: users.username }).from(users).where(sql`${users.username} = ${GUEST_USERNAME}`);
+  const [u] = await db.select({ id: users.id, name: users.name, role: users.role, username: users.username, tokenVersion: users.tokenVersion }).from(users).where(sql`${users.username} = ${GUEST_USERNAME}`);
   return u!;
 }

@@ -30,7 +30,8 @@ export function SettingsPage() {
         )}
         {isOwner && <ShopForm />}
         <DisplayPairing local={!!s.local} />
-        {isOwner && !s.local && <Staff />}
+        {isOwner && !s.local && s.user.username !== '__guest__' && <Staff />}
+        {!s.local && s.user.username !== '__guest__' && <ChangePassword />}
         {errors.length > 0 && (
           <div className="panel">
             <div className="panel-h"><h3>รายการที่เซิร์ฟเวอร์ไม่รับ</h3></div>
@@ -83,10 +84,15 @@ function ShopForm() {
 }
 
 /** จัดการพนักงานต้องออนไลน์ (เป็นเรื่องความปลอดภัย ไม่ผ่าน outbox) */
+type StaffUser = SessionUser & { disabled: boolean };
+
 function Staff() {
-  const [users, setUsers] = useState<SessionUser[] | null>(null);
+  const me = useSession()?.user.id;
+  const [users, setUsers] = useState<StaffUser[] | null>(null);
   const [f, setF] = useState({ name: '', username: '', password: '' });
   const [msg, setMsg] = useState('');
+  /** แถวที่กำลังตั้งรหัสใหม่ */
+  const [resetting, setResetting] = useState<{ id: string; password: string } | null>(null);
   const load = () => api.listUsers().then(setUsers).catch(() => setUsers(null));
   useEffect(() => void load(), []);
 
@@ -101,12 +107,51 @@ function Staff() {
       setMsg(err instanceof HttpError && err.code === 'username_taken' ? 'ชื่อผู้ใช้นี้มีอยู่แล้ว' : err instanceof HttpError ? 'ข้อมูลไม่ถูกต้อง: ชื่อผู้ใช้ a-z/0-9 3 ตัวขึ้นไป รหัสผ่าน 6 ตัวขึ้นไป' : 'ต้องเชื่อมต่ออินเทอร์เน็ตเพื่อจัดการพนักงาน');
     }
   }
+
+  async function update(u: StaffUser, b: { password?: string; disabled?: boolean }, done: string) {
+    try {
+      await api.updateUser(u.id, b);
+      setMsg(done);
+      setResetting(null);
+      void load();
+    } catch {
+      setMsg('ทำรายการไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่');
+    }
+  }
+
   return (
     <div className="panel">
-      <div className="panel-h"><h3>พนักงาน</h3></div>
+      <div className="panel-h"><h3>พนักงาน</h3><span className="note">ตั้งรหัสใหม่หรือปิดบัญชี = บัญชีนั้นถูกออกจากระบบทุกเครื่องทันที</span></div>
       <ul className="toplist">
         {users === null ? <li className="note">ต้องเชื่อมต่ออินเทอร์เน็ตเพื่อดูรายชื่อ</li>
-          : users.map((u) => <li key={u.id}><span>{u.name} <span className="note">@{u.username}</span></span><span className="pill sample">{u.role === 'owner' ? 'เจ้าของ' : 'แคชเชียร์'}</span></li>)}
+          : users.map((u) => (
+            <li key={u.id} style={{ opacity: u.disabled ? 0.55 : 1 }}>
+              <span>{u.name} <span className="note">@{u.username}</span>{' '}
+                <span className={`pill ${u.disabled ? 'out' : 'sample'}`}>{u.disabled ? 'ปิดบัญชีแล้ว' : u.role === 'owner' ? 'เจ้าของ' : 'แคชเชียร์'}</span>
+              </span>
+              {u.id !== me && (
+                <span className="acts">
+                  {resetting?.id === u.id ? (
+                    <form style={{ display: 'flex', gap: 6 }} onSubmit={(e) => { e.preventDefault(); void update(u, { password: resetting.password }, `ตั้งรหัสใหม่ให้ ${u.username} แล้ว`); }}>
+                      <input id={`reset-${u.id}`} type="password" minLength={6} required autoFocus placeholder="รหัสใหม่ 6 ตัวขึ้นไป" autoComplete="new-password"
+                        value={resetting.password} onChange={(e) => setResetting({ id: u.id, password: e.target.value })}
+                        style={{ border: '1px solid var(--line)', borderRadius: 999, padding: '4px 12px', width: 160 }} />
+                      <button className="btn sm primary">บันทึก</button>
+                      <button type="button" className="btn sm ghost" onClick={() => setResetting(null)}>ยกเลิก</button>
+                    </form>
+                  ) : (
+                    <>
+                      {!u.disabled && <button className="btn sm" onClick={() => setResetting({ id: u.id, password: '' })}>ตั้งรหัสใหม่</button>}
+                      <button className="btn sm ghost" style={{ color: u.disabled ? 'var(--accent)' : 'var(--danger)' }}
+                        onClick={() => void update(u, { disabled: !u.disabled }, u.disabled ? `เปิดบัญชี ${u.username} แล้ว` : `ปิดบัญชี ${u.username} แล้ว`)}>
+                        {u.disabled ? 'เปิดบัญชี' : 'ปิดบัญชี'}
+                      </button>
+                    </>
+                  )}
+                </span>
+              )}
+            </li>
+          ))}
       </ul>
       <form className="modal-b" onSubmit={submit} style={{ borderTop: '1px solid var(--line)' }}>
         <div className="form">
@@ -117,6 +162,39 @@ function Staff() {
         <div className="row"><span className="note">{msg}</span><button className="btn primary">เพิ่มแคชเชียร์</button></div>
       </form>
     </div>
+  );
+}
+
+/** เปลี่ยนรหัสผ่านของตัวเอง — เครื่องอื่นที่ล็อกอินบัญชีนี้อยู่จะถูกออกจากระบบ */
+function ChangePassword() {
+  const [f, setF] = useState({ current: '', next: '', confirm: '' });
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const set = (k: keyof typeof f) => (e: { target: { value: string } }) => { setF({ ...f, [k]: e.target.value }); setMsg(null); };
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    if (f.next !== f.confirm) return setMsg({ ok: false, text: 'รหัสใหม่สองช่องไม่ตรงกัน' });
+    try {
+      session.set(await api.changePassword(f.current, f.next));
+      setF({ current: '', next: '', confirm: '' });
+      setMsg({ ok: true, text: 'เปลี่ยนรหัสผ่านแล้ว เครื่องอื่นที่ใช้บัญชีนี้ต้องเข้าสู่ระบบใหม่' });
+    } catch (err) {
+      setMsg({ ok: false, text: err instanceof HttpError && err.status === 401 ? 'รหัสผ่านเดิมไม่ถูกต้อง' : err instanceof HttpError ? 'รหัสใหม่ต้องยาว 6 ตัวขึ้นไป' : 'ต้องเชื่อมต่ออินเทอร์เน็ตเพื่อเปลี่ยนรหัสผ่าน' });
+    }
+  }
+
+  return (
+    <form className="panel" onSubmit={submit}>
+      <div className="panel-h"><h3>เปลี่ยนรหัสผ่านของฉัน</h3></div>
+      <div className="modal-b">
+        <div className="form">
+          <label className="f full">รหัสผ่านเดิม<input id="pw-current" type="password" autoComplete="current-password" required value={f.current} onChange={set('current')} /></label>
+          <label className="f">รหัสผ่านใหม่<input id="pw-next" type="password" autoComplete="new-password" minLength={6} required value={f.next} onChange={set('next')} /></label>
+          <label className="f">ยืนยันรหัสใหม่<input id="pw-confirm" type="password" autoComplete="new-password" required value={f.confirm} onChange={set('confirm')} /></label>
+        </div>
+        <div className="row"><span className={msg?.ok ? 'note' : 'err'}>{msg?.text}</span><button className="btn primary">เปลี่ยนรหัส</button></div>
+      </div>
+    </form>
   );
 }
 
