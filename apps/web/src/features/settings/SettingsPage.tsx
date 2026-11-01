@@ -22,17 +22,22 @@ export function SettingsPage() {
   return (
     <section className="view">
       <div className="scroll"><div className="wrap" style={{ maxWidth: 720 }}>
-        <div className="sec-h"><div><h2>ตั้งค่า</h2><p>เข้าสู่ระบบเป็น {s.user.name} ({s.user.role === 'owner' ? 'เจ้าของร้าน' : 'แคชเชียร์'})</p></div></div>
+        <div className="sec-h"><div><h2>ตั้งค่า</h2><p>{s.local ? 'โหมดเก็บในเครื่องนี้ (ไม่ซิงก์)' : `เข้าสู่ระบบเป็น ${s.user.name} (${s.user.role === 'owner' ? 'เจ้าของร้าน' : 'แคชเชียร์'})`}</p></div></div>
+        {s.local && (
+          <div className="panel"><div className="modal-b">
+            <p className="note">ข้อมูลทั้งหมดอยู่ในเบราว์เซอร์นี้เท่านั้น ไม่ซิงก์กับเครื่องอื่น ถ้าล้างข้อมูลเบราว์เซอร์หรือเปิดโหมดไม่ระบุตัวตน ข้อมูลจะหาย</p>
+          </div></div>
+        )}
         {isOwner && <ShopForm />}
-        <DisplayPairing />
-        {isOwner && <Staff />}
+        <DisplayPairing local={!!s.local} />
+        {isOwner && !s.local && <Staff />}
         {errors.length > 0 && (
           <div className="panel">
             <div className="panel-h"><h3>รายการที่เซิร์ฟเวอร์ไม่รับ</h3></div>
             <ul className="top">{errors.slice(0, 10).map((e, i) => <li key={i}><span>{e.type}: {e.error}</span><span className="note">{new Date(e.at).toLocaleString('th-TH')}</span></li>)}</ul>
           </div>
         )}
-        <div className="panel">
+        {!s.local && <div className="panel">
           <div className="panel-h"><h3>ออกจากระบบ</h3></div>
           <div className="modal-b">
             {pending > 0
@@ -40,7 +45,7 @@ export function SettingsPage() {
               : <p className="note">ข้อมูลในเครื่องนี้จะถูกล้าง ข้อมูลบนเซิร์ฟเวอร์ยังอยู่ครบ</p>}
             <button className="btn" style={{ alignSelf: 'flex-start' }} disabled={pending > 0} onClick={() => void logout()}>ออกจากระบบ</button>
           </div>
-        </div>
+        </div>}
       </div></div>
     </section>
   );
@@ -116,7 +121,7 @@ function Staff() {
 }
 
 /** จับคู่จอลูกค้า: แท็บเล็ตสแกน QR นี้ หรือเปิดหน้าต่างใหม่บนจอที่สอง */
-function DisplayPairing() {
+function DisplayPairing({ local: localMode }: { local: boolean }) {
   const [code, setCode] = useState(getDisplayCode);
   const url = displayUrl(code);
   const local = /^(localhost|127\.)/.test(location.hostname);
@@ -136,7 +141,8 @@ function DisplayPairing() {
           <li>แท็บเล็ต/มือถือที่หันหาลูกค้า: สแกน QR ด้านบน หรือพิมพ์ลิงก์</li>
           <li>จอที่สองบนคอมเครื่องนี้: กด “เปิดในหน้าต่างใหม่” แล้วลากไปจอที่สอง</li>
         </ol>
-        {local && <p className="err">ตอนนี้เปิดผ่าน localhost อุปกรณ์อื่นจะเข้าลิงก์นี้ไม่ได้ ให้เปิดแอปด้วย IP ของเครื่อง (เช่น http://192.168.1.10:5173) หรือใช้ตอนขึ้นเซิร์ฟเวอร์จริง</p>}
+        {localMode && <p className="note">โหมดเก็บในเครื่อง: จอลูกค้าใช้ได้เฉพาะหน้าต่างที่สองบนเครื่องนี้ (กด “เปิดในหน้าต่างใหม่”) แท็บเล็ตเครื่องอื่นจะไม่เห็นรายการ</p>}
+        {!localMode && local && <p className="err">ตอนนี้เปิดผ่าน localhost อุปกรณ์อื่นจะเข้าลิงก์นี้ไม่ได้ ให้เปิดแอปด้วย IP ของเครื่อง (เช่น http://192.168.1.10:5173) หรือใช้ตอนขึ้นเซิร์ฟเวอร์จริง</p>}
         <div className="row" style={{ justifyContent: 'flex-start', gap: 8, flexWrap: 'wrap' }}>
           <a className="btn primary" href={url} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>เปิดในหน้าต่างใหม่</a>
           <button className="btn ghost" onClick={() => { resetDisplayCode(); setCode(getDisplayCode()); }}>เปลี่ยนรหัสจับคู่</button>

@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { api, HttpError } from '../api';
 import { db, getMeta, setMeta } from '../db';
-import { session } from '../session';
+import { isLocalMode, session } from '../session';
 
 /**
  * Sync engine
@@ -10,7 +10,7 @@ import { session } from '../session';
  *  2. PULL ทุกอย่างที่ seq > cursor แล้วเขียนทับสำเนาในเครื่อง
  * เรียกเมื่อ: เปิดแอป, เน็ตกลับมา, กลับเข้าแท็บ, ทุก 15 วินาที, และหลังทุกการบันทึก
  */
-export type SyncState = { status: 'idle' | 'syncing' | 'offline' | 'error'; lastSyncAt: string | null; error?: string };
+export type SyncState = { status: 'idle' | 'syncing' | 'offline' | 'error' | 'local'; lastSyncAt: string | null; error?: string };
 
 let state: SyncState = { status: navigator.onLine ? 'idle' : 'offline', lastSyncAt: null };
 const listeners = new Set<() => void>();
@@ -43,6 +43,7 @@ export function syncNow(): Promise<void> {
 
 async function runOnce() {
   if (!session.get()) return;
+  if (isLocalMode()) return setState({ status: 'local' });
   if (!navigator.onLine) return setState({ status: 'offline' });
   setState({ status: 'syncing', error: undefined });
   try {

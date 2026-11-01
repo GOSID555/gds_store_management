@@ -1,7 +1,7 @@
 import Dexie from 'dexie';
 import { computeSaleTotals, type Mutation, type PaymentMethod, type Product, type SaleItem } from '@pos/shared';
 import { db, getMeta, setMeta, type LocalSale } from './db';
-import { deviceCode, getDeviceId, session } from './session';
+import { deviceCode, getDeviceId, isLocalMode, session } from './session';
 import { syncNow } from './sync/engine';
 
 /**
@@ -15,11 +15,32 @@ async function enqueue<T extends Mutation['type']>(draft: Draft<T>, local?: () =
   const mutation = { ...draft, mid: crypto.randomUUID(), deviceId: getDeviceId(), at: new Date().toISOString() } as Mutation;
   await db.transaction('rw', [db.outbox, db.products, db.sales, db.meta], async () => {
     await local?.();
-    await db.outbox.add({ mutation, attempts: 0 });
+    // โหมดเก็บในเครื่อง: ไม่มีเซิร์ฟเวอร์มาคำนวณสต็อกให้ จึงเขียนผลลงตารางในเครื่องเลย ไม่ต่อคิว
+    if (isLocalMode()) await applyLocally(mutation);
+    else await db.outbox.add({ mutation, attempts: 0 });
   });
+  if (isLocalMode()) return mutation;
   // อย่าให้ sync เริ่มภายใน transaction ของ Dexie (จะผูกกับ transaction ที่กำลังจะปิด)
   Dexie.ignoreTransaction(() => setTimeout(() => void syncNow(), 0));
   return mutation;
+}
+
+/** ผลที่ฝั่ง server จะทำ สำหรับโหมดไม่มีเซิร์ฟเวอร์ (สต็อก + สถานะบิล) */
+async function applyLocally(m: Mutation) {
+  const move = (productId: string, delta: number) => db.products.where('id').equals(productId).modify((p) => void (p.stock += delta));
+  switch (m.type) {
+    case 'stock.adjust':
+      return move(m.payload.productId, m.payload.delta);
+    case 'sale.create':
+      await db.sales.update(m.payload.id, { pending: undefined });
+      for (const i of m.payload.items) await move(i.productId, -i.qty);
+      return;
+    case 'sale.void': {
+      const sale = await db.sales.get(m.payload.saleId);
+      for (const i of sale?.items ?? []) await move(i.productId, i.qty);
+      return;
+    }
+  }
 }
 
 export type ProductInput = Omit<Product, 'stock' | 'updatedAt' | 'seq'>;

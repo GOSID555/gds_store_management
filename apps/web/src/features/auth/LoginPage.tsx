@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { api, HttpError } from '../../lib/api';
-import { session } from '../../lib/session';
+import { session, startLocalSession } from '../../lib/session';
 
 export function LoginPage() {
   const [username, setUsername] = useState('');
@@ -14,7 +14,14 @@ export function LoginPage() {
     let alive = true;
     api.guest()
       .then((s) => alive && session.set(s))
-      .catch(() => alive && setTryingGuest(false));
+      .catch((e) => {
+        if (!alive) return;
+        // ไม่มีเซิร์ฟเวอร์ / ยังไม่ได้ต่อฐานข้อมูล → ใช้แบบเก็บในเครื่องไปเลย
+        // (เน็ตหลุดเฉยๆ ไม่นับ ให้เลือกเองจากปุ่มด้านล่าง)
+        const noBackend = e instanceof SyntaxError || (e instanceof HttpError && (e.status === 404 || e.status === 405 || e.code === 'server_not_configured'));
+        if (noBackend && !(e instanceof HttpError && e.code === 'login_required')) startLocalSession();
+        else setTryingGuest(false);
+      });
     return () => {
       alive = false;
     };
@@ -44,6 +51,8 @@ export function LoginPage() {
         <label className="f">รหัสผ่าน<input id="password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required /></label>
         {error && <p className="err">{error}</p>}
         <button className="btn primary" disabled={busy}>{busy ? 'กำลังเข้าสู่ระบบ…' : 'เข้าสู่ระบบ'}</button>
+        <button type="button" className="btn ghost" onClick={startLocalSession}>ใช้แบบเก็บในเครื่องนี้ (ไม่ต้องมีบัญชี)</button>
+        <p className="note">แบบเก็บในเครื่อง: ข้อมูลอยู่ในเบราว์เซอร์นี้เท่านั้น ไม่ซิงก์กับเครื่องอื่น</p>
       </form>
     </div>
   );

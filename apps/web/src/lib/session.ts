@@ -2,7 +2,8 @@ import { useSyncExternalStore } from 'react';
 import type { Role } from '@pos/shared';
 
 export type SessionUser = { id: string; name: string; username: string; role: Role };
-type Session = { token: string; user: SessionUser } | null;
+/** local = ไม่ต่อเซิร์ฟเวอร์ เก็บทุกอย่างใน IndexedDB ของเบราว์เซอร์นี้ (ใช้ทดลอง/ร้านที่มีเครื่องเดียว) */
+type Session = { token: string; user: SessionUser; local?: true } | null;
 
 const KEY = 'pos.session';
 const DEVICE_KEY = 'pos.deviceId';
@@ -44,3 +45,10 @@ export function getDeviceId(): string {
   return id;
 }
 export const deviceCode = () => getDeviceId().slice(0, 4).toUpperCase();
+
+export const isLocalMode = () => session.get()?.local === true;
+
+/** เข้าโหมดเก็บในเครื่อง: ไม่ต้องมีบัญชี ไม่ต้องมีเซิร์ฟเวอร์ */
+export function startLocalSession() {
+  session.set({ token: '', local: true, user: { id: 'local', name: 'เครื่องนี้', username: 'local', role: 'owner' } });
+}
