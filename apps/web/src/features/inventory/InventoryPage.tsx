@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { formatBaht, type Product } from '@pos/shared';
 import { stockState, useProducts } from '../../lib/hooks';
+import { actions } from '../../lib/mutations';
 import { ProductFormDialog } from './ProductFormDialog';
 import { StockAdjustDialog } from './StockAdjustDialog';
 
@@ -10,6 +11,13 @@ export function InventoryPage({ canEdit }: { canEdit: boolean }) {
   const [onlyLow, setOnlyLow] = useState(false);
   const [editing, setEditing] = useState<Product | 'new' | null>(null);
   const [adjusting, setAdjusting] = useState<Product | null>(null);
+  const [sampleMsg, setSampleMsg] = useState('');
+
+  async function loadSamples() {
+    setSampleMsg('กำลังใส่เมนู…');
+    const n = await actions.loadSampleMenu();
+    setSampleMsg(n ? `ใส่เมนูตัวอย่างแล้ว ${n} รายการ` : 'มีเมนูตัวอย่างครบอยู่แล้ว');
+  }
 
   const ps = products ?? [];
   const list = useMemo(() => {
@@ -23,7 +31,13 @@ export function InventoryPage({ canEdit }: { canEdit: boolean }) {
       <div className="scroll"><div className="wrap">
         <div className="sec-h">
           <div><h2>สินค้าและสต็อก</h2><p>เพิ่มสินค้า รับของเข้า และดูรายการที่ใกล้หมด</p></div>
-          {canEdit && <button className="btn primary" onClick={() => setEditing('new')}>+ เพิ่มสินค้า</button>}
+          {canEdit && (
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+              {sampleMsg && <span className="note">{sampleMsg}</span>}
+              <button className="btn ghost" onClick={() => void loadSamples()}>ใส่เมนูตัวอย่าง (ชานม 20 รายการ)</button>
+              <button className="btn primary" onClick={() => setEditing('new')}>+ เพิ่มสินค้า</button>
+            </div>
+          )}
         </div>
         <div className="kpis">
           <div className="kpi"><div className="l">รายการสินค้า</div><div className="v">{ps.length}</div></div>

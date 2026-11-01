@@ -1,5 +1,5 @@
 import Dexie from 'dexie';
-import { computeSaleTotals, type Mutation, type PaymentMethod, type Product, type SaleItem } from '@pos/shared';
+import { SAMPLE_MENU, computeSaleTotals, type Mutation, type PaymentMethod, type Product, type SaleItem } from '@pos/shared';
 import { db, getMeta, setMeta, type LocalSale } from './db';
 import { deviceCode, getDeviceId, isLocalMode, session } from './session';
 import { syncNow } from './sync/engine';
@@ -54,6 +54,21 @@ export const actions = {
       });
       if (initialStock) await actions.adjustStock(p.id, initialStock, 'receive', 'ยอดตั้งต้น');
     });
+  },
+
+  /** ใส่เมนูตัวอย่างร้านชานม 20 รายการ (ข้ามรายการที่มีอยู่แล้ว) คืนจำนวนที่เพิ่ม */
+  async loadSampleMenu(): Promise<number> {
+    const have = await db.products.bulkGet(SAMPLE_MENU.map((m) => m.id));
+    let added = 0;
+    for (const [i, m] of SAMPLE_MENU.entries()) {
+      if (have[i]) continue;
+      await actions.saveProduct(
+        { id: m.id, name: m.name, category: m.category, sku: m.sku, price: m.price * 100, cost: m.cost * 100, lowStock: m.lowStock, image: null, archived: false },
+        m.stock,
+      );
+      added++;
+    }
+    return added;
   },
 
   archiveProduct: (productId: string) =>

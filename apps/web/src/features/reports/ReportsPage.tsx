@@ -74,7 +74,7 @@ export function ReportsPage() {
           </div>
           <div className="panel">
             <div className="panel-h"><h3>ขายดี</h3></div>
-            <ul className="top">
+            <ul className="toplist">
               {r.top.length ? r.top.map(([n, a]) => (
                 <li key={n}>
                   <span>{n} <span style={{ color: 'var(--muted)' }}>× {a.q}</span></span>

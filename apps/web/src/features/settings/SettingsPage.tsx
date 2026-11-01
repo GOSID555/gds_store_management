@@ -34,7 +34,7 @@ export function SettingsPage() {
         {errors.length > 0 && (
           <div className="panel">
             <div className="panel-h"><h3>รายการที่เซิร์ฟเวอร์ไม่รับ</h3></div>
-            <ul className="top">{errors.slice(0, 10).map((e, i) => <li key={i}><span>{e.type}: {e.error}</span><span className="note">{new Date(e.at).toLocaleString('th-TH')}</span></li>)}</ul>
+            <ul className="toplist">{errors.slice(0, 10).map((e, i) => <li key={i}><span>{e.type}: {e.error}</span><span className="note">{new Date(e.at).toLocaleString('th-TH')}</span></li>)}</ul>
           </div>
         )}
         {!s.local && <div className="panel">
@@ -104,7 +104,7 @@ function Staff() {
   return (
     <div className="panel">
       <div className="panel-h"><h3>พนักงาน</h3></div>
-      <ul className="top">
+      <ul className="toplist">
         {users === null ? <li className="note">ต้องเชื่อมต่ออินเทอร์เน็ตเพื่อดูรายชื่อ</li>
           : users.map((u) => <li key={u.id}><span>{u.name} <span className="note">@{u.username}</span></span><span className="pill sample">{u.role === 'owner' ? 'เจ้าของ' : 'แคชเชียร์'}</span></li>)}
       </ul>

@@ -1,29 +1,28 @@
 /* Layout: app shell — header with tabs; sell view = product grid + cart rail (cart becomes a bottom sheet on phones) */
+/* Theme: ร้านชานมไข่มุก — ครีมฟองนม, น้ำตาลบราวน์ชูการ์, ท็อปปิ้งพาสเทล — สว่างอย่างเดียว */
 :root{
-  --bg:#F1F4F0; --surface:#FFFFFF; --surface-2:#E6EBE5; --ink:#17201B; --muted:#5B6860; --line:#D3DBD3;
-  --accent:#0E7A4F; --accent-ink:#FFFFFF; --accent-soft:#D7EEE2;
-  --mark:#D98E1E; --mark-soft:#FBEBD0; --danger:#BE3B28; --danger-soft:#F7DDD7; --warn:#A8690E;
-  --paper:#FFFDF5; --paper-ink:#1E1D1A;
-  --shadow:0 1px 2px rgba(20,35,27,.06),0 6px 20px rgba(20,35,27,.06);
-  --f-display:"Anuphan","IBM Plex Sans Thai",system-ui,sans-serif;
+  color-scheme:light;
+  --bg:#FFF6EC; --surface:#FFFFFF; --surface-2:#F8EADB; --ink:#3A2216; --muted:#8C6A57; --line:#EEDBC6;
+  --accent:#9C4F27; --accent-ink:#FFFFFF; --accent-soft:#F6E1D1;
+  --accent-grad:linear-gradient(135deg,#C2703F 0%,#8E4320 100%);
+  --pearl:#3A2216;
+  --taro:#9B6FD6; --taro-soft:#EFE5FB; --matcha:#6FA65A; --matcha-soft:#E6F2DF;
+  --strawberry:#E9718F; --strawberry-soft:#FCE4EA; --mango:#F2A93B; --mango-soft:#FDF0D9;
+  --blueberry:#5F8FD9; --blueberry-soft:#E3ECFA;
+  --mark:#E0902A; --mark-soft:#FDEFD8; --danger:#C8423A; --danger-soft:#FBE1DE; --warn:#B4661A;
+  --paper:#FFFDF7; --paper-ink:#2A1A12;
+  --shadow:0 1px 2px rgba(90,50,25,.06),0 8px 22px rgba(90,50,25,.08);
+  --f-display:"Mitr","IBM Plex Sans Thai",system-ui,sans-serif;
   --f-body:"IBM Plex Sans Thai",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --f-num:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
-  --r:10px;
+  --f-num:"Mitr","IBM Plex Sans Thai",system-ui,sans-serif;
+  --r:16px;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0F1411; --surface:#172019; --surface-2:#212B24; --ink:#E6ECE7; --muted:#97A59B; --line:#2D3831;
-  --accent:#3CC285; --accent-ink:#06150D; --accent-soft:#183B2A;
-  --mark:#F0B458; --mark-soft:#3A2E18; --danger:#F07D67; --danger-soft:#3D1E18; --warn:#E5B04C;
-  --paper:#F6F2E4; --paper-ink:#1E1D1A; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25); color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#0F1411; --surface:#172019; --surface-2:#212B24; --ink:#E6ECE7; --muted:#97A59B; --line:#2D3831;
-  --accent:#3CC285; --accent-ink:#06150D; --accent-soft:#183B2A;
-  --mark:#F0B458; --mark-soft:#3A2E18; --danger:#F07D67; --danger-soft:#3D1E18; --warn:#E5B04C;
-  --paper:#F6F2E4; --paper-ink:#1E1D1A; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25); color-scheme:dark}
 
 html,body,#root{height:100%}
 body{margin:0}
-body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body)}
+body{color:var(--ink);font:15px/1.5 var(--f-body);background-color:var(--bg);
+  background-image:radial-gradient(circle at 12px 12px,rgba(58,34,22,.045) 5px,transparent 6px),radial-gradient(circle at 44px 40px,rgba(58,34,22,.035) 4px,transparent 5px);
+  background-size:64px 64px}
 *{box-sizing:border-box}
 button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
@@ -155,10 +154,10 @@ td .prod{display:flex;align-items:center;gap:10px}
 .bar .bv{font:500 10.5px var(--f-num);color:var(--muted);white-space:nowrap}
 .bar-x{display:flex;gap:8px;padding:6px 16px 14px;border-top:1px solid var(--line);margin:0}
 .bar-x span{flex:1;text-align:center;font-size:11.5px;color:var(--muted);min-width:0}
-.top{list-style:none;margin:0;padding:8px 16px 14px;display:flex;flex-direction:column;gap:10px}
-.top li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;font-size:14px}
-.top .track{grid-column:1/-1;height:6px;background:var(--surface-2);border-radius:3px;overflow:hidden}
-.top .track i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.toplist{list-style:none;margin:0;padding:8px 16px 14px;display:flex;flex-direction:column;gap:10px}
+.toplist li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;font-size:14px}
+.toplist .track{grid-column:1/-1;height:6px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+.toplist .track i{display:block;height:100%;background:var(--accent);border-radius:3px}
 .seg{display:flex;gap:2px;background:var(--surface-2);padding:3px;border-radius:8px}
 .seg button{border:0;background:transparent;padding:5px 12px;border-radius:6px;font-size:13px;color:var(--muted)}
 .seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
@@ -237,3 +236,41 @@ tr.click:hover td{background:var(--surface-2)}
 .pair{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
 .pair .code{font:600 28px var(--f-num);letter-spacing:.12em}
 .pair .url{font:13px var(--f-num);color:var(--muted);overflow-wrap:anywhere}
+
+/* --- ชานมไข่มุก: ปรับรายละเอียด --- */
+header.top{background:rgba(255,255,255,.85);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.brand .logo{background:var(--accent-grad);border-radius:12px;box-shadow:0 3px 10px rgba(142,67,32,.3)}
+.brand h1{color:var(--accent)}
+.tabs{background:var(--surface-2);border-radius:999px}
+.tabs a,.tabs button{border-radius:999px}
+.tabs a.active{background:var(--accent-grad);color:#fff;box-shadow:0 3px 10px rgba(142,67,32,.25)}
+.iconbtn{border-radius:999px}
+.chip{border-radius:999px;font-weight:500}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.field{border-radius:999px;padding:0 16px}
+.tile{border-radius:20px;border-color:transparent;box-shadow:var(--shadow)}
+.tile:hover{border-color:var(--accent-soft);transform:translateY(-2px)}
+.tile .sw{width:42px;height:42px;border-radius:50%;font-size:18px}
+.tile .qbadge{background:var(--strawberry);color:#fff}
+.cart{background:rgba(255,255,255,.92)}
+.pay{background:var(--accent-grad);border-radius:999px;box-shadow:0 6px 18px rgba(142,67,32,.3)}
+.cartbar{background:var(--accent-grad)!important;border-radius:999px!important}
+.btn{border-radius:999px}
+.btn.primary{background:var(--accent-grad);border-color:transparent}
+.qty button{border-radius:50%;background:var(--accent-soft);border-color:transparent;color:var(--accent)}
+.kpi{border-radius:20px;border:0;box-shadow:var(--shadow)}
+.kpis .kpi:nth-child(1){background:var(--mango-soft)}
+.kpis .kpi:nth-child(2){background:var(--taro-soft)}
+.kpis .kpi:nth-child(3){background:var(--matcha-soft)}
+.kpis .kpi:nth-child(4){background:var(--strawberry-soft)}
+.panel{border-radius:20px;border:0;box-shadow:var(--shadow)}
+.modal{border-radius:24px}
+.due{background:var(--mango-soft);border-radius:18px}
+.seg{border-radius:999px}
+.seg button{border-radius:999px}
+.bar .b{background:var(--taro)}
+.bar.today .b{background:var(--accent)}
+.toplist .track i{background:linear-gradient(90deg,var(--mango),var(--strawberry))}
+.pill.ok{background:var(--matcha-soft);color:#3F7A2E}
+.sync.cloud i{background:var(--matcha)}
+.banner{background:var(--mango-soft)}

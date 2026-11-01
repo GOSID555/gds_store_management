@@ -2,8 +2,9 @@ import { useMemo, useState, type KeyboardEvent } from 'react';
 import { formatBaht, type Product } from '@pos/shared';
 import { stockState } from '../../lib/hooks';
 
-const HUES = [152, 28, 205, 340, 95, 265, 48, 182, 10, 300];
-const hueOf = (s: string) => HUES[[...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 0) % HUES.length];
+/** สีประจำหมวดแบบท็อปปิ้งชานม: เผือก มัทฉะ สตรอว์เบอร์รี มะม่วง บลูเบอร์รี บราวน์ชูการ์ */
+const TOPPINGS = ['var(--taro)', 'var(--matcha)', 'var(--strawberry)', 'var(--mango)', 'var(--blueberry)', 'var(--accent)'];
+const colorOf = (s: string) => TOPPINGS[[...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 0) % TOPPINGS.length];
 const ALL = 'ทั้งหมด';
 
 type Props = { products?: Product[]; qtyOf: (id: string) => number; onAdd: (p: Product) => void; onNotFound: (q: string) => void };
@@ -50,7 +51,7 @@ export function ProductGrid({ products, qtyOf, onAdd, onNotFound }: Props) {
         {!products ? (
           <div className="empty" style={{ gridColumn: '1/-1' }}>กำลังโหลดสินค้า…</div>
         ) : !products.length ? (
-          <div className="empty" style={{ gridColumn: '1/-1' }}><b>ยังไม่มีสินค้า</b>ไปที่แท็บ “สต็อก” แล้วกด “เพิ่มสินค้า” เพื่อเริ่มขาย</div>
+          <div className="empty" style={{ gridColumn: '1/-1' }}><b>ยังไม่มีสินค้า</b>ไปที่แท็บ “สต็อก” แล้วกด “เพิ่มสินค้า” หรือ “ใส่เมนูตัวอย่าง” เพื่อเริ่มขาย</div>
         ) : !list.length ? (
           <div className="empty" style={{ gridColumn: '1/-1' }}>ไม่พบสินค้าที่ตรงกับ “{q}”</div>
         ) : (
@@ -63,7 +64,7 @@ export function ProductGrid({ products, qtyOf, onAdd, onNotFound }: Props) {
                 {p.image ? (
                   <img className="ph" src={p.image} alt="" loading="lazy" />
                 ) : (
-                  <span className="sw" style={{ background: `hsl(${hueOf(p.category)} 45% 42%)` }}>{p.name.charAt(0)}</span>
+                  <span className="sw" style={{ background: colorOf(p.category) }}>{p.name.charAt(0)}</span>
                 )}
                 <span className="nm">{p.name}</span>
                 <span className="ft">
