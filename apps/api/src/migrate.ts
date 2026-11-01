@@ -6,8 +6,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ensureOwner } from './bootstrap';
 import { createDb } from './db/client';
+import { databaseUrlFromEnv } from './env';
 
-const url = process.env.DATABASE_URL;
+const url = databaseUrlFromEnv();
 if (!url) {
   console.log('migrate: ไม่มี DATABASE_URL ข้ามการ migrate');
   process.exit(0);

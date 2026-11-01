@@ -19,8 +19,11 @@ const Env = z.object({
 
 export type Env = Omit<z.infer<typeof Env>, 'JWT_SECRET'> & { JWT_SECRET: string };
 
+/** Vercel/Neon อาจตั้งชื่อตัวแปรต่างกันตาม prefix ที่เลือกตอนเชื่อมฐานข้อมูล */
+export const databaseUrlFromEnv = () => process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.STORAGE_URL || undefined;
+
 export function loadEnv(): Env {
-  const env = Env.parse(process.env);
+  const env = Env.parse({ ...process.env, DATABASE_URL: databaseUrlFromEnv() });
   if (env.JWT_SECRET) return { ...env, JWT_SECRET: env.JWT_SECRET };
   if (env.REQUIRE_LOGIN) throw new Error('REQUIRE_LOGIN=true ต้องตั้ง JWT_SECRET ด้วย');
   // โหมดทดลอง: ทุกคนเป็นเจ้าของร้านอยู่แล้ว ใช้ secret ที่คงที่ต่อฐานข้อมูล (ทุก instance ได้ค่าเดียวกัน)
